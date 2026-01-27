@@ -78,9 +78,7 @@ class RegisterService(BaseTaskService[RegisterTask]):
             # 将 domain 记录在日志里，便于排查
             self._append_log(task, "info", f"register task queued (count={register_count}, domain={domain_value or 'default'})")
             await self._enqueue_task(task)
-            self._current_task_id = task.id
             self._append_log(task, "info", f"📝 创建注册任务 (数量={register_count})")
-            asyncio.create_task(self._run_register_async(task, domain_value))
             return task
 
     def _execute_task(self, task: RegisterTask):
