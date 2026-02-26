@@ -85,8 +85,8 @@ MODEL_TO_QUOTA_TYPE = {
 
 # ---------- 日志配置 ----------
 
-# 内存日志缓冲区 (保留最近 1000 条日志，重启后清空)
-log_buffer = deque(maxlen=1000)
+# 内存日志缓冲区 (保留最近 3000 条日志，重启后清空)
+log_buffer = deque(maxlen=3000)
 log_lock = Lock()
 
 # 统计数据持久化

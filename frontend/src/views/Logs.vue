@@ -261,7 +261,7 @@ let isFetching = false
 const filters = reactive({
   level: '',
   search: '',
-  limit: 300,
+  limit: 1000,
 })
 
 const levelOptions = [
