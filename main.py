@@ -848,8 +848,19 @@ async def save_cooldown_states_task():
     while True:
         try:
             await asyncio.sleep(300)  # 每5分钟执行一次
-            success_count = await account.save_all_cooldown_states(multi_account_mgr)
-            logger.debug(f"[COOLDOWN] 定期保存: {success_count}/{len(multi_account_mgr.accounts)} 个账户")
+            for attempt in range(3):
+                try:
+                    success_count = await account.save_all_cooldown_states(multi_account_mgr)
+                    logger.debug(f"[COOLDOWN] 定期保存: {success_count}/{len(multi_account_mgr.accounts)} 个账户")
+                    break
+                except Exception as retry_err:
+                    err_msg = str(retry_err)
+                    if "another operation" in err_msg or "ConnectionDoesNotExist" in err_msg or "connection was closed" in err_msg:
+                        if attempt < 2:
+                            logger.warning(f"[COOLDOWN] 数据库连接繁忙，{attempt+1}/3 次重试...")
+                            await asyncio.sleep(5 * (attempt + 1))
+                            continue
+                    raise
         except Exception as e:
             logger.error(f"[COOLDOWN] 定期保存失败: {e}")
 
@@ -1377,6 +1388,7 @@ async def admin_get_accounts(request: Request):
             "is_available": account_manager.is_available,
             "failure_count": account_manager.failure_count,
             "disabled": config.disabled,
+            "disabled_reason": getattr(account_manager, 'disabled_reason', None) or getattr(config, 'disabled_reason', None),
             "cooldown_seconds": cooldown_seconds,
             "cooldown_reason": cooldown_reason,
             "conversation_count": account_manager.conversation_count,
